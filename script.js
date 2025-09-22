@@ -97,19 +97,22 @@ async function exchangeCodeForToken(code) {
     showLoadingSection();
     
     try {
-        // Note: In a production app, this should be done on your backend server
-        // For demo purposes, we'll use a public endpoint that handles the token exchange
-        // You'll need to set up your own backend or use a service like Netlify Functions
+        // Use a public CORS proxy for demo purposes
+        // In production, you should use your own backend
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const tokenUrl = 'https://accounts.spotify.com/api/token';
         
-        const response = await fetch('/api/token', {
+        const response = await fetch(proxyUrl + tokenUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${btoa(CLIENT_ID + ':' + 'your_client_secret_here')}`,
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({
+            body: new URLSearchParams({
+                grant_type: 'authorization_code',
                 code: code,
-                redirect_uri: REDIRECT_URI,
-                client_id: CLIENT_ID
+                redirect_uri: REDIRECT_URI
             })
         });
 
