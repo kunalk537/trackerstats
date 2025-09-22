@@ -13,6 +13,103 @@ body {
     overflow-x: hidden;
 }
 
+/* Navigation Bar */
+.navbar {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(30, 215, 96, 0.2);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 0;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+}
+
+.nav-brand h2 {
+    color: #1ed760;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.nav-menu {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-item {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(30, 215, 96, 0.2), transparent);
+    transition: left 0.3s;
+}
+
+.nav-item:hover::before {
+    left: 100%;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(30, 215, 96, 0.5);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.nav-item.active {
+    background: #1ed760;
+    color: #fff;
+    border-color: #1ed760;
+    box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3);
+}
+
+.nav-logout {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.nav-logout:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.5);
+    color: #ff6b6b;
+    transform: translateY(-2px);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
@@ -35,6 +132,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    margin-top: 80px; /* Account for fixed navbar */
 }
 
 /* Header */
@@ -136,6 +234,96 @@ header p {
 
 .spotify-icon {
     font-size: 1.3rem;
+}
+
+/* Page Navigation */
+.page-content {
+    position: relative;
+}
+
+.page {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-header h2 {
+    font-size: 2.5rem;
+    color: #1ed760;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.page-header h3 {
+    font-size: 1.8rem;
+    color: #1ed760;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-bottom: 0;
+}
+
+.page-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, #1ed760, #1db954);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(30, 215, 96, 0.2);
+}
+
+.primary-btn:hover {
+    background: linear-gradient(135deg, #1db954, #1ed760);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 215, 96, 0.4);
+}
+
+.refresh-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.refresh-btn:hover {
+    background: rgba(30, 215, 96, 0.2);
+    border-color: rgba(30, 215, 96, 0.5);
+    color: #1ed760;
+    transform: translateY(-2px);
 }
 
 /* User Info */
@@ -560,46 +748,42 @@ header p {
     100% { transform: rotate(360deg); }
 }
 
-/* Actions */
-.actions {
+/* Export Options */
+.export-options {
     display: flex;
-    gap: 15px;
     justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 30px;
-    padding: 25px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    gap: 30px;
+    margin-top: 40px;
 }
 
-.actions .secondary-btn {
-    position: relative;
-    overflow: hidden;
+.export-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: center;
+    max-width: 400px;
     transition: all 0.3s ease;
 }
 
-.actions .secondary-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(30, 215, 96, 0.1), transparent);
-    transition: left 0.3s;
+.export-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    border-color: rgba(30, 215, 96, 0.3);
 }
 
-.actions .secondary-btn:hover::before {
-    left: 100%;
+.export-card h3 {
+    color: #1ed760;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: 600;
 }
 
-.actions .secondary-btn:hover {
-    background: rgba(30, 215, 96, 0.15);
-    border-color: rgba(30, 215, 96, 0.4);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(30, 215, 96, 0.2);
+.export-card p {
+    opacity: 0.8;
+    margin-bottom: 25px;
+    line-height: 1.6;
 }
 
 /* Audio Features */
@@ -653,6 +837,25 @@ header p {
 @media (max-width: 768px) {
     .container {
         padding: 15px;
+        margin-top: 70px;
+    }
+    
+    .nav-container {
+        padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .nav-menu {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    
+    .nav-item {
+        padding: 8px 16px;
+        font-size: 0.8rem;
     }
     
     header h1 {
@@ -666,6 +869,7 @@ header p {
     .user-info {
         flex-direction: column;
         text-align: center;
+        gap: 15px;
     }
     
     .stats-grid {
@@ -683,23 +887,37 @@ header p {
         max-width: 200px;
     }
     
-    .actions {
+    .page-actions {
         flex-direction: column;
         align-items: center;
     }
     
-    .time-stat .time-value {
-        font-size: 2.5rem;
+    .primary-btn {
+        width: 100%;
+        max-width: 300px;
     }
     
-    .time-breakdown {
-        grid-template-columns: repeat(2, 1fr);
+    .export-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .export-card {
+        max-width: 100%;
     }
     
     .card-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+    }
+    
+    .page-header h2 {
+        font-size: 2rem;
+    }
+    
+    .page-header h3 {
+        font-size: 1.5rem;
     }
 }
 
