@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Stats Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Spotify Stats Dashboard</h1>
+            <p>Connect your Spotify account to view your listening statistics</p>
+        </header>
+
+        <main>
+            <!-- Login Section -->
+            <div id="login-section" class="section">
+                <div class="login-card">
+                    <h2>Connect to Spotify</h2>
+                    <p>Click the button below to authorize access to your Spotify account and view your listening stats.</p>
+                    <button id="login-btn" class="spotify-btn">
+                        <span class="spotify-icon">🎵</span>
+                        Connect with Spotify
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div id="stats-section" class="section hidden">
+                <div class="user-info">
+                    <img id="user-avatar" src="" alt="User Avatar" class="avatar">
+                    <div class="user-details">
+                        <h2 id="user-name"></h2>
+                        <p id="user-followers"></p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <!-- Recent Artists -->
+                    <div class="stat-card">
+                        <h3>🎤 Top Artists (Last 30 Days)</h3>
+                        <div id="top-artists" class="stat-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Genres -->
+                    <div class="stat-card">
+                        <h3>🎭 Top Genres</h3>
+                        <div id="top-genres" class="stat-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Tracks -->
+                    <div class="stat-card">
+                        <h3>🎵 Recent Tracks</h3>
+                        <div id="recent-tracks" class="stat-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Listening Time -->
+                    <div class="stat-card">
+                        <h3>⏱️ Listening Time</h3>
+                        <div id="listening-time" class="stat-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="refresh-btn" class="secondary-btn">Refresh Stats</button>
+                    <button id="logout-btn" class="secondary-btn">Logout</button>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div id="loading-section" class="section hidden">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading your Spotify data...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
