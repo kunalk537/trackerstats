@@ -3,89 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Stats Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Spotify Stats - Simple Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1db954, #191414);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #1db954;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #1ed760;
+            transform: translateY(-2px);
+        }
+        .stats {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🎵 Spotify Stats Dashboard</h1>
-            <p>Connect your Spotify account to view your listening statistics</p>
-        </header>
-
-        <main>
-            <!-- Login Section -->
-            <div id="login-section" class="section">
-                <div class="login-card">
-                    <h2>Connect to Spotify</h2>
-                    <p>Click the button below to authorize access to your Spotify account and view your listening stats.</p>
-                    <button id="login-btn" class="spotify-btn">
-                        <span class="spotify-icon">🎵</span>
-                        Connect with Spotify
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stats Section -->
-            <div id="stats-section" class="section hidden">
-                <div class="user-info">
-                    <img id="user-avatar" src="" alt="User Avatar" class="avatar">
-                    <div class="user-details">
-                        <h2 id="user-name"></h2>
-                        <p id="user-followers"></p>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <!-- Recent Artists -->
-                    <div class="stat-card">
-                        <h3>🎤 Top Artists (Last 30 Days)</h3>
-                        <div id="top-artists" class="stat-content">
-                            <div class="loading">Loading...</div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Genres -->
-                    <div class="stat-card">
-                        <h3>🎭 Top Genres</h3>
-                        <div id="top-genres" class="stat-content">
-                            <div class="loading">Loading...</div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Tracks -->
-                    <div class="stat-card">
-                        <h3>🎵 Recent Tracks</h3>
-                        <div id="recent-tracks" class="stat-content">
-                            <div class="loading">Loading...</div>
-                        </div>
-                    </div>
-
-                    <!-- Listening Time -->
-                    <div class="stat-card">
-                        <h3>⏱️ Listening Time</h3>
-                        <div id="listening-time" class="stat-content">
-                            <div class="loading">Loading...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button id="refresh-btn" class="secondary-btn">Refresh Stats</button>
-                    <button id="logout-btn" class="secondary-btn">Logout</button>
-                </div>
-            </div>
-
-            <!-- Loading Section -->
-            <div id="loading-section" class="section hidden">
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>Loading your Spotify data...</p>
-                </div>
-            </div>
-        </main>
+        <h1>🎵 Spotify Stats</h1>
+        <p>Simple version that connects directly to Spotify</p>
+        
+        <div id="login-section">
+            <button class="btn" onclick="connectToSpotify()">Connect with Spotify</button>
+        </div>
+        
+        <div id="stats-section" class="stats">
+            <h2>Your Spotify Stats</h2>
+            <div id="user-info"></div>
+            <div id="top-tracks"></div>
+            <div id="top-artists"></div>
+            <div id="recent-tracks"></div>
+        </div>
+        
+        <div id="error-section"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const CLIENT_ID = 'bd92c64d5ad64293b406301bee0ba0d3';
+        const REDIRECT_URI = window.location.origin;
+        
+        // Check if we're returning from Spotify auth
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        
+        if (error) {
+            showError('Authorization failed: ' + error);
+        } else if (code) {
+            // We have a code, now we need to exchange it for a token
+            exchangeCodeForToken(code);
+        } else {
+            // Check if we have a stored token
+            const storedToken = localStorage.getItem('spotify_access_token');
+            if (storedToken) {
+                loadUserData(storedToken);
+            }
+        }
+        
+        function connectToSpotify() {
+            const scopes = 'user-read-recently-played user-top-read user-read-private';
+            const authUrl = `https://accounts.spotify.com/authorize?` +
+                `client_id=${CLIENT_ID}&` +
+                `response_type=code&` +
+                `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+                `scope=${encodeURIComponent(scopes)}&` +
+                `show_dialog=true`;
+            
+            window.location.href = authUrl;
+        }
+        
+        async function exchangeCodeForToken(code) {
+            try {
+                // For this demo, we'll use a simple approach
+                // You'll need to implement proper backend token exchange
+                showError('Token exchange not implemented. Please use the full version with backend server.');
+            } catch (error) {
+                showError('Failed to exchange code for token: ' + error.message);
+            }
+        }
+        
+        async function loadUserData(token) {
+            try {
+                const response = await fetch('https://api.spotify.com/v1/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user data');
+                }
+                
+                const user = await response.json();
+                displayUserInfo(user);
+                
+                // Load top tracks
+                const tracksResponse = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=10', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (tracksResponse.ok) {
+                    const tracks = await tracksResponse.json();
+                    displayTopTracks(tracks.items);
+                }
+                
+                // Load top artists
+                const artistsResponse = await fetch('https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=10', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (artistsResponse.ok) {
+                    const artists = await artistsResponse.json();
+                    displayTopArtists(artists.items);
+                }
+                
+                // Load recent tracks
+                const recentResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=10', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (recentResponse.ok) {
+                    const recent = await recentResponse.json();
+                    displayRecentTracks(recent.items);
+                }
+                
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('stats-section').style.display = 'block';
+                
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+            }
+        }
+        
+        function displayUserInfo(user) {
+            const userInfo = document.getElementById('user-info');
+            userInfo.innerHTML = `
+                <div class="stat-card">
+                    <h3>👤 User Profile</h3>
+                    <p><strong>Name:</strong> ${user.display_name}</p>
+                    <p><strong>Followers:</strong> ${user.followers.total}</p>
+                    <p><strong>Country:</strong> ${user.country}</p>
+                </div>
+            `;
+        }
+        
+        function displayTopTracks(tracks) {
+            const container = document.getElementById('top-tracks');
+            let html = '<div class="stat-card"><h3>🎵 Top Tracks (Last 30 Days)</h3><ol>';
+            tracks.forEach((track, index) => {
+                html += `<li>${track.name} - ${track.artists.map(a => a.name).join(', ')}</li>`;
+            });
+            html += '</ol></div>';
+            container.innerHTML = html;
+        }
+        
+        function displayTopArtists(artists) {
+            const container = document.getElementById('top-artists');
+            let html = '<div class="stat-card"><h3>🎤 Top Artists (Last 30 Days)</h3><ol>';
+            artists.forEach((artist, index) => {
+                html += `<li>${artist.name} - ${artist.genres.slice(0, 2).join(', ')}</li>`;
+            });
+            html += '</ol></div>';
+            container.innerHTML = html;
+        }
+        
+        function displayRecentTracks(tracks) {
+            const container = document.getElementById('recent-tracks');
+            let html = '<div class="stat-card"><h3>🕒 Recent Tracks</h3><ol>';
+            tracks.forEach((item, index) => {
+                html += `<li>${item.track.name} - ${item.track.artists.map(a => a.name).join(', ')}</li>`;
+            });
+            html += '</ol></div>';
+            container.innerHTML = html;
+        }
+        
+        function showError(message) {
+            const errorSection = document.getElementById('error-section');
+            errorSection.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+    </script>
 </body>
 </html>
