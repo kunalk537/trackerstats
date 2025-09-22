@@ -67,6 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
     createArtistsPlaylistBtn.addEventListener('click', createTopArtistsPlaylist);
     exportDataBtn.addEventListener('click', exportUserData);
     
+    // Navigation event listeners
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.dataset.section;
+            navigateToSection(section);
+            
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+    
     // Time period selector
     document.querySelectorAll('.period-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -82,6 +94,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// Navigation function
+function navigateToSection(section) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show selected page
+    const targetPage = document.getElementById(`${section}-page`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        
+        // Load content for specific pages if needed
+        if (section === 'artists') {
+            loadArtistsPage();
+        } else if (section === 'tracks') {
+            loadTracksPage();
+        }
+    }
+}
 
 // Show different sections
 function showLoginSection() {
@@ -264,8 +297,8 @@ function displayUserProfile(profile) {
         profile.images[0]?.url || 'https://via.placeholder.com/80';
 }
 
-function displayTopArtists(artists) {
-    const container = document.getElementById('top-artists');
+function displayTopArtists(artists, containerId = null) {
+    const container = containerId || document.getElementById('top-artists');
     container.innerHTML = '';
 
     if (artists.length === 0) {
@@ -288,8 +321,8 @@ function displayTopArtists(artists) {
     });
 }
 
-function displayTopTracks(tracks) {
-    const container = document.getElementById('top-tracks');
+function displayTopTracks(tracks, containerId = null) {
+    const container = containerId || document.getElementById('top-tracks');
     container.innerHTML = '';
 
     if (tracks.length === 0) {
@@ -357,67 +390,55 @@ function displayTopGenres(artists) {
     });
 }
 
+// Simplified album recommendations - show recent albums from top artists
 async function loadAlbumRecommendations(topArtists) {
     const container = document.getElementById('album-recommendations');
     container.innerHTML = '<div class="loading">Finding albums you might like...</div>';
 
     try {
-        // Get recommendations based on top artists
-        const artistIds = topArtists.slice(0, 5).map(artist => artist.id);
-        const seedArtists = artistIds.join(',');
+        // Get recent albums from top artists (simplified approach)
+        const albums = [];
         
-        const recommendations = await fetchSpotifyData(
-            `/recommendations?seed_artists=${seedArtists}&limit=10`
-        );
+        for (const artist of topArtists.slice(0, 3)) { // Limit to 3 artists for better performance
+            try {
+                const artistAlbums = await fetchSpotifyData(`/artists/${artist.id}/albums?limit=5&album_type=album`);
+                if (artistAlbums.items && artistAlbums.items.length > 0) {
+                    albums.push(...artistAlbums.items);
+                }
+            } catch (error) {
+                console.error(`Failed to get albums for artist ${artist.name}:`, error);
+            }
+        }
 
-        displayAlbumRecommendations(recommendations.tracks);
+        displayAlbumRecommendations(albums);
     } catch (error) {
         console.error('Failed to load album recommendations:', error);
         container.innerHTML = '<div class="loading">Unable to load recommendations</div>';
     }
 }
 
-function displayAlbumRecommendations(tracks) {
+function displayAlbumRecommendations(albums) {
     const container = document.getElementById('album-recommendations');
     container.innerHTML = '';
 
-    if (tracks.length === 0) {
+    if (albums.length === 0) {
         container.innerHTML = '<div class="loading">No recommendations available</div>';
         return;
     }
 
-    // Group tracks by album
-    const albumsMap = new Map();
-    tracks.forEach(track => {
-        const album = track.album;
-        if (!albumsMap.has(album.id)) {
-            albumsMap.set(album.id, {
-                id: album.id,
-                name: album.name,
-                artist: album.artists[0].name,
-                image: album.images[1]?.url || album.images[0]?.url,
-                release_date: album.release_date,
-                total_tracks: album.total_tracks,
-                tracks: []
-            });
-        }
-        albumsMap.get(album.id).tracks.push(track);
-    });
+    // Sort albums by release date (newest first) and take top 6
+    const sortedAlbums = albums
+        .sort((a, b) => new Date(b.release_date) - new Date(a.release_date))
+        .slice(0, 6);
 
-    // Convert to array and sort by release date (newest first)
-    const albums = Array.from(albumsMap.values()).sort((a, b) => 
-        new Date(b.release_date) - new Date(a.release_date)
-    );
-
-    // Display top 6 albums
-    albums.slice(0, 6).forEach(album => {
+    sortedAlbums.forEach(album => {
         const albumElement = document.createElement('div');
         albumElement.className = 'album-item';
         albumElement.innerHTML = `
-            <img src="${album.image || 'https://via.placeholder.com/60'}" alt="${album.name}" class="album-artwork">
+            <img src="${album.images[1]?.url || album.images[0]?.url || 'https://via.placeholder.com/60'}" alt="${album.name}" class="album-artwork">
             <div class="album-info">
                 <h4>${album.name}</h4>
-                <p>${album.artist}</p>
+                <p>${album.artists[0].name}</p>
             </div>
             <div class="album-year">${new Date(album.release_date).getFullYear()}</div>
         `;
@@ -500,14 +521,16 @@ function displayAudioFeatures(tracks) {
         });
 }
 
-// Playlist creation function
+// Simplified playlist creation function
 async function createTopTracksPlaylist() {
     try {
+        showNotification('⏳', 'Creating playlist...');
+        
         // Get current user's top tracks
-        const topTracks = await fetchSpotifyData(`/me/top/tracks?time_range=${currentTimeRange}&limit=50`);
+        const topTracks = await fetchSpotifyData(`/me/top/tracks?time_range=${currentTimeRange}&limit=20`);
         
         if (!topTracks.items || topTracks.items.length === 0) {
-            alert('No tracks available to create playlist');
+            showNotification('❌', 'No tracks available to create playlist');
             return;
         }
 
@@ -532,15 +555,16 @@ async function createTopTracksPlaylist() {
         });
 
         if (!playlist.ok) {
-            throw new Error('Failed to create playlist');
+            const errorData = await playlist.json();
+            throw new Error(errorData.error?.message || 'Failed to create playlist');
         }
         
         const playlistData = await playlist.json();
 
-        // Add tracks to playlist
-        const trackUris = topTracks.items.map(track => track.uri);
+        // Add tracks to playlist (limit to 20 for better performance)
+        const trackUris = topTracks.items.slice(0, 20).map(track => track.uri);
         
-        await fetch(`${SPOTIFY_API_BASE}/playlists/${playlistData.id}/tracks`, {
+        const addTracksResponse = await fetch(`${SPOTIFY_API_BASE}/playlists/${playlistData.id}/tracks`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -551,6 +575,10 @@ async function createTopTracksPlaylist() {
             })
         });
 
+        if (!addTracksResponse.ok) {
+            throw new Error('Failed to add tracks to playlist');
+        }
+
         showNotification('✅', `Playlist "${playlistName}" created successfully!`);
         
     } catch (error) {
@@ -559,13 +587,16 @@ async function createTopTracksPlaylist() {
     }
 }
 
-// Create playlist from top artists
+// Simplified artists playlist creation
 async function createTopArtistsPlaylist() {
     try {
-        const topArtists = await fetchSpotifyData(`/me/top/artists?time_range=${currentTimeRange}&limit=20`);
+        showNotification('⏳', 'Creating artists playlist...');
+        
+        // Get current user's top artists
+        const topArtists = await fetchSpotifyData(`/me/top/artists?time_range=${currentTimeRange}&limit=10`);
         
         if (!topArtists.items || topArtists.items.length === 0) {
-            alert('No artists available to create playlist');
+            showNotification('❌', 'No artists available to create playlist');
             return;
         }
 
@@ -588,14 +619,15 @@ async function createTopArtistsPlaylist() {
         });
 
         if (!playlist.ok) {
-            throw new Error('Failed to create playlist');
+            const errorData = await playlist.json();
+            throw new Error(errorData.error?.message || 'Failed to create playlist');
         }
         
         const playlistData = await playlist.json();
 
-        // Get top tracks from each artist
+        // Get top tracks from each artist (simplified)
         const trackUris = [];
-        for (const artist of topArtists.items.slice(0, 10)) {
+        for (const artist of topArtists.items.slice(0, 5)) { // Limit to 5 artists for better performance
             try {
                 const artistTracks = await fetchSpotifyData(`/artists/${artist.id}/top-tracks?market=US`);
                 if (artistTracks.tracks && artistTracks.tracks.length > 0) {
@@ -607,7 +639,7 @@ async function createTopArtistsPlaylist() {
         }
         
         if (trackUris.length > 0) {
-            await fetch(`${SPOTIFY_API_BASE}/playlists/${playlistData.id}/tracks`, {
+            const addTracksResponse = await fetch(`${SPOTIFY_API_BASE}/playlists/${playlistData.id}/tracks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -617,6 +649,10 @@ async function createTopArtistsPlaylist() {
                     uris: trackUris
                 })
             });
+
+            if (!addTracksResponse.ok) {
+                throw new Error('Failed to add tracks to playlist');
+            }
         }
 
         showNotification('✅', `Artists playlist "${playlistName}" created successfully!`);
@@ -685,6 +721,33 @@ function getPeriodLabel(period) {
 function refreshData() {
     showLoadingSection();
     loadUserData();
+}
+
+// Page-specific loading functions
+async function loadArtistsPage() {
+    const container = document.getElementById('artists-content');
+    container.innerHTML = '<div class="loading">Loading artists...</div>';
+    
+    try {
+        const topArtists = await fetchSpotifyData(`/me/top/artists?time_range=${currentTimeRange}&limit=20`);
+        displayTopArtists(topArtists.items, container);
+    } catch (error) {
+        console.error('Failed to load artists:', error);
+        container.innerHTML = '<div class="loading">Failed to load artists</div>';
+    }
+}
+
+async function loadTracksPage() {
+    const container = document.getElementById('tracks-content');
+    container.innerHTML = '<div class="loading">Loading tracks...</div>';
+    
+    try {
+        const topTracks = await fetchSpotifyData(`/me/top/tracks?time_range=${currentTimeRange}&limit=20`);
+        displayTopTracks(topTracks.items, container);
+    } catch (error) {
+        console.error('Failed to load tracks:', error);
+        container.innerHTML = '<div class="loading">Failed to load tracks</div>';
+    }
 }
 
 function logout() {
