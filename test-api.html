@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #1db954;
+        }
+        .error {
+            border-left-color: #ff6b6b;
+            background: #ffe6e6;
+        }
+        .success {
+            border-left-color: #4caf50;
+            background: #e8f5e8;
+        }
+        button {
+            background: #1db954;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1ed760;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 API Endpoint Test</h1>
+    <p>This page tests if your Vercel API endpoints are working correctly.</p>
+    
+    <div class="test-section">
+        <h3>Test 1: Check if API endpoints exist</h3>
+        <button onclick="testApiEndpoints()">Test API Endpoints</button>
+        <div id="endpoint-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Check environment variables</h3>
+        <p>This will test if the environment variables are set correctly in Vercel.</p>
+        <button onclick="testEnvironment()">Test Environment</button>
+        <div id="environment-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Debug Information</h3>
+        <div id="debug-info">
+            <p><strong>Current URL:</strong> <span id="current-url"></span></p>
+            <p><strong>API Base URL:</strong> <span id="api-base"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Set debug info
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('api-base').textContent = window.location.origin + '/api';
+        
+        async function testApiEndpoints() {
+            const resultDiv = document.getElementById('endpoint-test-result');
+            resultDiv.innerHTML = '<p>Testing API endpoints...</p>';
+            
+            try {
+                // Test if /api/token endpoint exists
+                const tokenResponse = await fetch('/api/token', {
+                    method: 'OPTIONS'
+                });
+                
+                let result = '<h4>API Endpoint Test Results:</h4>';
+                
+                if (tokenResponse.status === 200) {
+                    result += '<p class="success">✅ /api/token endpoint exists and responds to OPTIONS</p>';
+                } else {
+                    result += `<p class="error">❌ /api/token endpoint returned status: ${tokenResponse.status}</p>`;
+                }
+                
+                // Test if /api/refresh endpoint exists
+                const refreshResponse = await fetch('/api/refresh', {
+                    method: 'OPTIONS'
+                });
+                
+                if (refreshResponse.status === 200) {
+                    result += '<p class="success">✅ /api/refresh endpoint exists and responds to OPTIONS</p>';
+                } else {
+                    result += `<p class="error">❌ /api/refresh endpoint returned status: ${refreshResponse.status}</p>`;
+                }
+                
+                resultDiv.innerHTML = result;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error testing API endpoints: ${error.message}</p>`;
+            }
+        }
+        
+        async function testEnvironment() {
+            const resultDiv = document.getElementById('environment-test-result');
+            resultDiv.innerHTML = '<p>Testing environment variables...</p>';
+            
+            try {
+                // Try to make a request that would use environment variables
+                const response = await fetch('/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: 'test-code',
+                        redirect_uri: window.location.origin,
+                        client_id: 'test-client-id'
+                    })
+                });
+                
+                const responseText = await response.text();
+                let responseData;
+                
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch {
+                    responseData = { error: 'Invalid JSON response' };
+                }
+                
+                let result = '<h4>Environment Test Results:</h4>';
+                
+                if (response.status === 500 && responseData.error === 'Server configuration error') {
+                    result += '<p class="error">❌ Environment variables not set in Vercel</p>';
+                    result += '<p>You need to add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to your Vercel environment variables.</p>';
+                } else if (response.status === 400) {
+                    result += '<p class="success">✅ Environment variables are set correctly</p>';
+                    result += '<p>The API rejected the test request (as expected), which means the environment is configured.</p>';
+                } else {
+                    result += `<p class="error">❌ Unexpected response: ${response.status}</p>`;
+                }
+                
+                result += `<pre>Response: ${JSON.stringify(responseData, null, 2)}</pre>`;
+                resultDiv.innerHTML = result;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error testing environment: ${error.message}</p>`;
+            }
+        }
+        
+        // Auto-run tests on page load
+        window.onload = function() {
+            testApiEndpoints();
+            setTimeout(testEnvironment, 1000);
+        };
+    </script>
+</body>
+</html>
