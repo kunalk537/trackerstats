@@ -113,9 +113,37 @@
         
         async function exchangeCodeForToken(code) {
             try {
-                // For this demo, we'll use a simple approach
-                // You'll need to implement proper backend token exchange
-                showError('Token exchange not implemented. Please use the full version with backend server.');
+                const response = await fetch('/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        redirect_uri: REDIRECT_URI,
+                        client_id: CLIENT_ID
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to exchange code for token');
+                }
+
+                const data = await response.json();
+                const accessToken = data.access_token;
+                const refreshToken = data.refresh_token;
+                
+                // Store tokens
+                localStorage.setItem('spotify_access_token', accessToken);
+                localStorage.setItem('spotify_refresh_token', refreshToken);
+                
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Load user data
+                loadUserData(accessToken);
+                
             } catch (error) {
                 showError('Failed to exchange code for token: ' + error.message);
             }
