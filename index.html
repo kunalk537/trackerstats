@@ -10,6 +10,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>🎵 Spotify Stats</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <button class="nav-item active" data-section="overview">📊 Overview</button>
+                <button class="nav-item" data-section="artists">🎤 Artists</button>
+                <button class="nav-item" data-section="tracks">🎵 Tracks</button>
+                <button class="nav-item" data-section="recommendations">💡 Discover</button>
+                <button class="nav-item" data-section="export">📊 Export</button>
+            </div>
+            <div class="nav-actions">
+                <button id="logout-btn" class="nav-logout">🚪 Logout</button>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <header>
             <h1>🎵 Spotify Stats Dashboard</h1>
@@ -31,12 +50,14 @@
 
             <!-- Stats Section -->
             <div id="stats-section" class="section hidden">
+                <!-- User Info Header -->
                 <div class="user-info">
                     <img id="user-avatar" src="" alt="User Avatar" class="avatar">
                     <div class="user-details">
                         <h2 id="user-name"></h2>
                         <p id="user-followers"></p>
                     </div>
+                    <button id="refresh-btn" class="refresh-btn">🔄 Refresh</button>
                 </div>
 
                 <!-- Time Period Selector -->
@@ -49,80 +70,111 @@
                     </div>
                 </div>
 
-                <div class="stats-grid">
-                    <!-- Top Artists -->
-                    <div class="stat-card featured">
-                        <div class="card-header">
-                            <h3>🎤 Top Artists</h3>
-                            <span class="period-indicator" id="artists-period">Last 4 Weeks</span>
+                <!-- Page Content -->
+                <div class="page-content">
+                    <!-- Overview Page -->
+                    <div id="overview-page" class="page active">
+                        <div class="stats-grid">
+                            <div class="stat-card featured">
+                                <div class="card-header">
+                                    <h3>🎤 Top Artists</h3>
+                                    <span class="period-indicator" id="artists-period">Last 4 Weeks</span>
+                                </div>
+                                <div id="top-artists" class="stat-content">
+                                    <div class="loading">Loading...</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card featured">
+                                <div class="card-header">
+                                    <h3>🎵 Top Tracks</h3>
+                                    <span class="period-indicator" id="tracks-period">Last 4 Weeks</span>
+                                </div>
+                                <div id="top-tracks" class="stat-content">
+                                    <div class="loading">Loading...</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="card-header">
+                                    <h3>🎭 Top Genres</h3>
+                                    <span class="period-indicator" id="genres-period">Last 4 Weeks</span>
+                                </div>
+                                <div id="top-genres" class="stat-content">
+                                    <div class="loading">Loading...</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="card-header">
+                                    <h3>🎼 Audio Profile</h3>
+                                    <span class="period-indicator" id="audio-period">Last 4 Weeks</span>
+                                </div>
+                                <div id="audio-features" class="stat-content">
+                                    <div class="loading">Loading...</div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="top-artists" class="stat-content">
+                    </div>
+
+                    <!-- Artists Page -->
+                    <div id="artists-page" class="page">
+                        <div class="page-header">
+                            <h2>🎤 Your Top Artists</h2>
+                            <p>Discover your most-listened artists across different time periods</p>
+                        </div>
+                        <div id="artists-content" class="stat-content">
                             <div class="loading">Loading...</div>
                         </div>
                     </div>
 
-                    <!-- Top Tracks -->
-                    <div class="stat-card featured">
-                        <div class="card-header">
-                            <h3>🎵 Top Tracks</h3>
-                            <span class="period-indicator" id="tracks-period">Last 4 Weeks</span>
+                    <!-- Tracks Page -->
+                    <div id="tracks-page" class="page">
+                        <div class="page-header">
+                            <h2>🎵 Your Top Tracks</h2>
+                            <p>Explore your favorite songs and create playlists</p>
                         </div>
-                        <div id="top-tracks" class="stat-content">
+                        <div id="tracks-content" class="stat-content">
                             <div class="loading">Loading...</div>
+                        </div>
+                        <div class="page-actions">
+                            <button id="create-playlist-btn" class="primary-btn">🎵 Create Top Tracks Playlist</button>
+                            <button id="create-artists-playlist-btn" class="primary-btn">🎤 Create Artists Playlist</button>
                         </div>
                     </div>
 
-                    <!-- Album Recommendations -->
-                    <div class="stat-card featured recommendations-card">
-                        <div class="card-header">
-                            <h3>🎵 Album Recommendations</h3>
-                            <span class="period-indicator">Based on your taste</span>
+                    <!-- Recommendations Page -->
+                    <div id="recommendations-page" class="page">
+                        <div class="page-header">
+                            <h2>💡 Discover New Music</h2>
+                            <p>Find albums from your favorite artists</p>
                         </div>
                         <div id="album-recommendations" class="stat-content">
                             <div class="loading">Loading...</div>
                         </div>
-                    </div>
-
-                    <!-- Top Genres -->
-                    <div class="stat-card">
-                        <div class="card-header">
-                            <h3>🎭 Top Genres</h3>
-                            <span class="period-indicator" id="genres-period">Last 4 Weeks</span>
-                        </div>
-                        <div id="top-genres" class="stat-content">
-                            <div class="loading">Loading...</div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity -->
-                    <div class="stat-card">
-                        <div class="card-header">
+                        <div class="page-header">
                             <h3>🕒 Recent Activity</h3>
-                            <span class="period-indicator">Last 50 tracks</span>
+                            <p>Your latest listening history</p>
                         </div>
                         <div id="recent-tracks" class="stat-content">
                             <div class="loading">Loading...</div>
                         </div>
                     </div>
 
-                    <!-- Audio Features -->
-                    <div class="stat-card">
-                        <div class="card-header">
-                            <h3>🎼 Audio Profile</h3>
-                            <span class="period-indicator" id="audio-period">Last 4 Weeks</span>
+                    <!-- Export Page -->
+                    <div id="export-page" class="page">
+                        <div class="page-header">
+                            <h2>📊 Export Your Data</h2>
+                            <p>Download your complete Spotify statistics for analysis</p>
                         </div>
-                        <div id="audio-features" class="stat-content">
-                            <div class="loading">Loading...</div>
+                        <div class="export-options">
+                            <div class="export-card">
+                                <h3>📈 Complete Statistics</h3>
+                                <p>Export all your listening data including artists, tracks, and audio features</p>
+                                <button id="export-data-btn" class="primary-btn">📊 Export Data</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="actions">
-                    <button id="create-playlist-btn" class="secondary-btn">🎵 Create Top Tracks Playlist</button>
-                    <button id="create-artists-playlist-btn" class="secondary-btn">🎤 Create Artists Playlist</button>
-                    <button id="export-data-btn" class="secondary-btn">📊 Export Data</button>
-                    <button id="refresh-btn" class="secondary-btn">🔄 Refresh Stats</button>
-                    <button id="logout-btn" class="secondary-btn">🚪 Logout</button>
                 </div>
             </div>
 
