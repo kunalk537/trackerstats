@@ -72,13 +72,13 @@
                         </div>
                     </div>
 
-                    <!-- Listening Time -->
-                    <div class="stat-card listening-time-card">
+                    <!-- Album Recommendations -->
+                    <div class="stat-card featured recommendations-card">
                         <div class="card-header">
-                            <h3>⏱️ Listening Time</h3>
-                            <span class="period-indicator" id="time-period">Last 4 Weeks</span>
+                            <h3>🎵 Album Recommendations</h3>
+                            <span class="period-indicator">Based on your taste</span>
                         </div>
-                        <div id="listening-time" class="stat-content">
+                        <div id="album-recommendations" class="stat-content">
                             <div class="loading">Loading...</div>
                         </div>
                     </div>
@@ -118,9 +118,11 @@
                 </div>
 
                 <div class="actions">
-                    <button id="create-playlist-btn" class="secondary-btn">Create Top Tracks Playlist</button>
-                    <button id="refresh-btn" class="secondary-btn">Refresh Stats</button>
-                    <button id="logout-btn" class="secondary-btn">Logout</button>
+                    <button id="create-playlist-btn" class="secondary-btn">🎵 Create Top Tracks Playlist</button>
+                    <button id="create-artists-playlist-btn" class="secondary-btn">🎤 Create Artists Playlist</button>
+                    <button id="export-data-btn" class="secondary-btn">📊 Export Data</button>
+                    <button id="refresh-btn" class="secondary-btn">🔄 Refresh Stats</button>
+                    <button id="logout-btn" class="secondary-btn">🚪 Logout</button>
                 </div>
             </div>
 
@@ -132,6 +134,14 @@
                 </div>
             </div>
         </main>
+        
+        <!-- Notification Toast -->
+        <div id="notification" class="notification hidden">
+            <div class="notification-content">
+                <span id="notification-icon">✅</span>
+                <span id="notification-message">Success!</span>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
